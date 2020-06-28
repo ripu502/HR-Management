@@ -110,14 +110,15 @@ module.exports.addJobs = (req, res, next) => {
         });
     }
     const { email, job, token } = req.body;
-    jwt.verify(token, 'secretkey', (err, authData) => {
+    jwt.verify(req.token, 'secretkey', (err, authData) => {
         if (err) {
+            console.log(err);
             res.sendStatus(403);
             return;
         }
         else {
             // console.log(authData)
-            const newjob = new Job({ email: email, name: job, id: authData.id })
+            const newjob = new Job({ email: authData.email, name: job, id: authData.id })
             newjob.save().then(result => {
                 res.status(200).json({
                     status: 'OK',
