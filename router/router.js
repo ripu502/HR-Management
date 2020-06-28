@@ -1,11 +1,19 @@
 const router = require('express').Router();
+const adminHandler = require('../controller/admin');
 
-router.get('/', (req, res, next) => {
-    res.status(200).json(
-        {
-            status: "working"
-        })
-})
+const companyComtroller = require('../controller/company');
+
+router.post('/registerCompany', companyComtroller.register)
+
+router.post('/loginCompany', companyComtroller.login)
+
+router.get('/jobs', companyComtroller.getJobs)
+
+
+router.post('/addJobs', companyComtroller.addJobs)
+
+router.get('/admin/company', adminHandler.getCompanies)
+
 
 
 module.exports = router;
