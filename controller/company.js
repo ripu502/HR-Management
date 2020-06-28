@@ -3,10 +3,18 @@ const Job = require('../Model/Jobs');
 const { models } = require('mongoose');
 const User = require('../Model/User');
 const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
+
 
 
 // Register a Company
 module.exports.register = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            errors: errors.array(),
+        });
+    }
     const {
         name,
         type,
@@ -39,6 +47,12 @@ module.exports.register = (req, res, next) => {
 
 // Login the Company and signing the token for 1 year
 module.exports.login = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            errors: errors.array(),
+        });
+    }
     const { email, password } = req.body;
     Company.findOne({ email: email }).then(com => {
         if (com != null) {
@@ -89,6 +103,12 @@ module.exports.login = (req, res, next) => {
 
 // Company adds the jobs
 module.exports.addJobs = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            errors: errors.array(),
+        });
+    }
     const { email, job, token } = req.body;
     jwt.verify(token, 'secretkey', (err, authData) => {
         if (err) {
@@ -143,6 +163,12 @@ module.exports.getJobs = (req, res, next) => {
 
 // applicant apply for the job
 module.exports.addApplication = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            errors: errors.array(),
+        });
+    }
     const { name, mobileNo, email, companyId, job, resume } = req.body;
     const user = new User({ name, mobileNo, email, companyId, job, resume });
     user.save()
