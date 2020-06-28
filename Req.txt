@@ -1,0 +1,10 @@
+jwt for auth and login
+validations
+add some data 
+filter of the job applications
+forget password
+aws resume
+mailer for updates
+hoting of api
+making docs of api
+subcription for the features

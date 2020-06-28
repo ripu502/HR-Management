@@ -1,145 +1,124 @@
 const router = require('express').Router();
-const adminHandler = require('../controller/admin');
+const { check } = require('express-validator');
+const Company = require('../Model/Company');
 
+const adminHandler = require('../controller/admin');
 const companyComtroller = require('../controller/company');
 
-router.post('/registerCompany', companyComtroller.register)
+router.post('/registerCompany',
+    [
+        check('email')
+            .isEmail()
+            .withMessage('Issue in email')
+            .custom((value) => {
+                return Company.findOne({ email: value })
+                    .then(com => {
+                        if (com)
+                            return Promise.reject('Company already exist : email');
+                    })
+            })
+            .normalizeEmail(),
 
-router.post('/loginCompany', companyComtroller.login)
+        check('name')
+            .isLength({ min: 1 })
+            .withMessage('Issue in name'),
 
-router.get('/jobs', companyComtroller.getJobs)
+        check('mobileNo')
+            .isLength({ min: 10, max: 10 })
+            .withMessage('Issue in mobileNo')
+            .custom((value) => {
+                return Company.findOne({ mobileNo: value })
+                    .then(com => {
+                        if (com)
+                            return Promise.reject('Student already exist : mobileNo');
+                    })
+            }),
+
+        check('password')
+            .isLength({ min: 8 })
+            .withMessage('Password is empty or short'),
+
+        check('cpassword')
+            .custom((value, { req }) => {
+                if (value !== req.body.password) {
+                    throw new Error('Password confirmation does not match password');
+                }
+                return true;
+            })
+    ],
+    companyComtroller.register)
+
+router.post('/loginCompany',
+    [
+        check('email').isEmail().withMessage('Issue in email').normalizeEmail(),
+
+        check('password').isLength({ min: 8 }).withMessage('Incorrect password'),
+
+    ],
+    companyComtroller.login)
+
+router.post('/addJobs',
+    [
+        check('email').isEmail().withMessage('Issue in email').normalizeEmail(),
+
+        check('job').isLength({ min: 1 }).withMessage('Issue in job'),
+
+    ],
+    verifyToken,
+    companyComtroller.addJobs)
+
+router.get('/jobs',
+    verifyToken,
+    companyComtroller.getJobs)
+
+router.get('/visiter',
+    verifyToken,
+    companyComtroller.getVisiter);
+
+router.post('/visiter',
+    [
+        check('email').isEmail().withMessage('Issue in email')
+            .normalizeEmail(),
+
+        check('name').isLength({ min: 1 }).withMessage('Issue in name'),
+
+        check('mobileNo').isLength({ min: 10, max: 10 }).withMessage('Issue in mobileNo'),
+
+        check('companyId').isLength({ min: 24, max: 24 }).withMessage('Issue in companyId'),
+
+        check('job').isLength({ min: 1 }).withMessage('Issue in job'),
 
 
-router.post('/addJobs', companyComtroller.addJobs)
+    ],
+    companyComtroller.addApplication)
 
-router.get('/admin/company', adminHandler.getCompanies)
 
+// Super admin routes 
 
+router.get('/admin/visiter',
+    // verifyToken,
+    adminHandler.getVisiter);
+
+router.get('/admin/jobs',
+    // verifyToken,
+    adminHandler.getJobs)
+
+router.get('/admin/company',
+    // verifyToken,
+    adminHandler.getCompanies)
 
 module.exports = router;
 
-// const controller = require('../controller/function');
-// const { check } = require('express-validator');
-// const jwt = require('jsonwebtoken');
 
-// const Student = require('../models/Student');
-// const User = require('../models/User');
-
-// router.post('/auth', (req, res, next) => {
-//     const { username, password } = req.body;
-//     User.findOne({ username: username })
-//         .then(user => {
-//             if (user.username === username && user.password === password) {
-//                 jwt.sign({ user: user }, 'secretkey', { expiresIn: '1h' }, (err, token) => {
-//                     if (err) {
-//                         console.log(`some err occured ${err}`);
-//                     } else {
-//                         res.json(
-//                             {
-//                                 token: token
-//                             });
-//                     }
-//                 })
-//             } else {
-//                 res.json({ token: "failed" });
-//             }
-//         })
-//         .catch(err => {
-//             console.log(`some err occured at /auth ${err}`);
-//             res.json({ data: "failed" });
-//         })
-// })
-
-
-// router.post('/register',
-//     [
-//         check('email').isEmail().withMessage('Issue in email')
-//             .custom((value) => {
-//                 return Student.findOne({ email: value })
-//                     .then(student => {
-//                         if (student)
-//                             return Promise.reject('Student already exist : email');
-//                     })
-//             }).normalizeEmail(),
-//         check('mobileNumber').isLength({ min: 10, max: 10 }).withMessage('Issue in mobileNumber')
-//             .custom((value) => {
-//                 return Student.findOne({ mobileNumber: value })
-//                     .then(student => {
-//                         if (student)
-//                             return Promise.reject('Student already exist : mobileNumber');
-//                     })
-//             }),
-//         check('studentNumber').isLength({ min: 7, max: 7 }).withMessage('Issue in studentNumber')
-//             .custom((value) => {
-//                 return Student.findOne({ studentNumber: value })
-//                     .then(student => {
-//                         if (student)
-//                             return Promise.reject('Student already exist : studentNumber');
-//                     })
-//             }),
-//         check('branch').isLength({ min: 1, max: 4 }).withMessage('Issue in branch'),
-//         check('fullName').isLength({ min: 1 }).withMessage('Issue in fullName'),
-//         check('gender').isLength({ min: 1, max: 7 }).withMessage('Issue in gender'),
-//         check('hosteler').isLength({ min: 1, max: 3 }).withMessage('Issue in hosteler'),
-//         check('year').isLength({ min: 1, max: 1 }).withMessage('Issue in year'),
-//         check('sport').isLength({ min: 1 }).withMessage('Issue in sport')
-//     ], controller.register);
-
-// router.post('/schedules', verifyToken, [
-//     check('sportName').isLength({ min: 1 }).withMessage('Issue in sportName'),
-//     check('branch1').isLength({ max: 4 }).withMessage('Issue in branch1'),
-//     check('branch2').isLength({ max: 4 }).withMessage('Issue in branch2'),
-//     check('venue').isLength({ min: 1 }).withMessage('Issue in venue'),
-//     check('date').isLength({ min: 10, max: 10 }).withMessage('Issue in Date'),
-//     check('timeStart').isLength({ min: 4, max: 4 }).withMessage('Issue in timeStart'),
-//     check('timeEnd').isLength({ min: 4, max: 4 }).withMessage('Issue in timeEnd')
-// ], controller.schedule);
-
-// router.get('/schedules', controller.getSchedule);
-
-// router.post('/medal', verifyToken, [
-//     check('branch1').isLength({ min: 1, max: 4 }).withMessage('Issue in branch'),
-//     check('silver').isLength({ min: 1, max: 2 }).withMessage('Issue in silver'),
-//     check('gold').isLength({ min: 1, max: 2 }).withMessage('Issue in gold'),
-//     check('bronze').isLength({ min: 1, max: 2 }).withMessage('Issue in bronze')
-// ], controller.medal);
-
-// router.get('/medal', controller.getMedal);
-
-// router.post('/news', verifyToken, [
-//     check('sportName').isLength({ min: 1 }).withMessage('Issue in sportName'),
-//     check('summary').isLength({ min: 1 }).withMessage('Issue in summary'),
-//     check('image').isLength({ min: 1 }).withMessage('Issue in image'),
-//     check('date').isLength({ min: 10, max: 10 }).withMessage('Issue in date')
-// ], controller.news);
-
-// router.post('/poll', controller.poll);
-
-// router.get('/poll', controller.getPoll);
-
-// router.get('/news', controller.getNews);
-
-// router.get('/register', controller.getStudent);
-
-// router.use('/', controller.error);
-
-// Verify Token
+// making the helper for verify the presence of the jwt token
 function verifyToken(req, res, next) {
-    // Get auth header value
     const bearerHeader = req.headers['authorization'];
-    // Check if bearer is undefined
     if (typeof bearerHeader !== 'undefined') {
-        // Split at the space
         const bearer = bearerHeader.split(' ');
-        // Get token from array
         const bearerToken = bearer[1];
-        // Set the token
         req.token = bearerToken;
-        // Next middleware
         next();
     } else {
-        // Forbidden
         res.sendStatus(403);
     }
-
 }

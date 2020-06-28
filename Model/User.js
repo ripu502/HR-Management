@@ -1,15 +1,10 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 
-const companySchema = new mongoose.Schema({
-    // _id: { type: String },
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
-    },
-    type: {
-        type: String,
-        // required: true,
     },
     mobileNo: {
         type: String,
@@ -26,7 +21,6 @@ const companySchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true,
         lowercase: true,
         uniqueCaseInsensitive: true,
         validate(value) {
@@ -35,12 +29,16 @@ const companySchema = new mongoose.Schema({
             }
         }
     },
-    password: {
-        required: true,
+    companyId: {
         type: String,
+        required: true,
     },
-    version: {
+    job: {
+        type: String,
+        required: true,
+    },
+    resume: {
         type: String,
     }
 })
-module.exports = mongoose.model('Company', companySchema);
+module.exports = mongoose.model('User', userSchema);
