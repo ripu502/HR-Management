@@ -3,6 +3,7 @@ const Job = require('../Model/Jobs');
 const { models } = require('mongoose');
 const User = require('../Model/User');
 const jwt = require('jsonwebtoken');
+const client = require('twilio')(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN)
 const { validationResult } = require('express-validator');
 
 
@@ -30,6 +31,7 @@ module.exports.register = (req, res, next) => {
         email: email,
         password: password,
         version: version,
+        noVerified: 'No'
     });
     company.save().then(result => {
         res.status(200).json({
@@ -42,6 +44,114 @@ module.exports.register = (req, res, next) => {
             msg: 'Company is not Registered',
             err: err
         })
+    })
+}
+
+module.exports.getMsg = (req, res, next) => {
+    jwt.verify(req.token, 'secretkey', (err, authData) => {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            const phoneNo = authData.mobileNo;
+            // let data = await 
+            client
+                .verify
+                .services(process.env.SERVICE_ID)
+                .verifications
+                .create({
+                    to: `+91${phoneNo}`,
+                    channel: 'sms'
+                })
+            res.status(200).json({
+                msg: 'Hope that the Code is send. Pending!',
+            })
+            // .then(data => {
+            //     // sending the data when the otp send and when prob
+            //     console.log(data);
+            //     res.status(200).json({
+            //         // status: 'OK',
+            //         ...data
+            //     })
+            // if (data.status === 'approved') {
+            // } else {
+            //     res.status(401).json({
+            //         status: 'Failed',
+            //         ...data
+            //     })
+            // }
+            // })
+            // .catch(err => {
+            //     res.status(401).json({
+            //         status: 'Failed',
+            //         msg: 'Some err occured',
+            //         err: err
+            //     })
+            // })
+        }
+    })
+}
+
+
+// send the code with token
+module.exports.postCode = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            errors: errors.array(),
+        });
+    }
+    jwt.verify(req.token, 'secretkey', (err, authData) => {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            let code = req.body.code;
+            client
+                .verify
+                .services(process.env.SERVICE_ID)
+                .verificationChecks
+                .create({
+                    to: `+91${authData.mobileNo}`,
+                    code: code
+                }).then(data => {
+                    if (data.status === "approved") {
+                        Company.findById(authData.id).then(company => {
+                            company.noVerified = 'Yes';
+                            company.save().then(done => {
+                                res.status(200).json({
+                                    status: 'Done',
+                                    msg: 'Number is verified',
+                                    data: done,
+                                })
+                            }).catch(err => {
+                                res.status(401).json({
+                                    status: 'Failed',
+                                    msg: 'Some backend issue',
+                                    err: err
+                                })
+                            })
+                        }).catch(err => {
+                            console.log('some err');
+                            res.status(401).json({
+                                status: 'Failed',
+                                msg: 'Some backend issue',
+                                err: err
+                            })
+                        })
+                    } else {
+                        res.status(401).json({
+                            status: 'Failed',
+                            msg: 'Looks like wrong code',
+                            // err: err
+                        })
+                    }
+                }).catch(err => {
+                    res.status(401).json({
+                        status: 'Failed',
+                        msg: 'Some err occured',
+                        err: err
+                    })
+                })
+        }
     })
 }
 
@@ -58,7 +168,7 @@ module.exports.login = (req, res, next) => {
         if (com != null) {
             console.log(com.password, password)
             if (com.password === password) {
-                jwt.sign({ email: com.email, id: com._id }, 'secretkey', { expiresIn: '1y' }, (err, token) => {
+                jwt.sign({ email: com.email, id: com._id, mobileNo: com.mobileNo }, 'secretkey', { expiresIn: '1y' }, (err, token) => {
                     if (err) {
                         console.log(`some err occured ${err}`);
                         res.status(500).json({

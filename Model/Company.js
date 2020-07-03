@@ -41,6 +41,9 @@ const companySchema = new mongoose.Schema({
     },
     version: {
         type: String,
+    },
+    noVerified:{
+        type: String,
     }
 })
 module.exports = mongoose.model('Company', companySchema);

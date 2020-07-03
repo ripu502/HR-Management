@@ -71,6 +71,15 @@ router.get('/jobs',
     verifyToken,
     companyComtroller.getJobs)
 
+router.get('/getMsg',
+    verifyToken,
+    companyComtroller.getMsg);
+
+router.post('/postCode',
+    [check('code').isLength({ min: 4, max: 4 }).withMessage('Code is wrong from Basic validity'),],
+    verifyToken,
+    companyComtroller.postCode);
+
 router.get('/visiter',
     verifyToken,
     companyComtroller.getVisiter);
