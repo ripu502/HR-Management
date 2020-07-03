@@ -168,7 +168,7 @@ module.exports.login = (req, res, next) => {
         if (com != null) {
             console.log(com.password, password)
             if (com.password === password) {
-                jwt.sign({ email: com.email, id: com._id, mobileNo: com.mobileNo }, 'secretkey', { expiresIn: '1y' }, (err, token) => {
+                jwt.sign({ email: com.email, id: com._id, mobileNo: com.mobileNo, verify: com.noVerified }, 'secretkey', { expiresIn: '1y' }, (err, token) => {
                     if (err) {
                         console.log(`some err occured ${err}`);
                         res.status(500).json({
@@ -228,6 +228,12 @@ module.exports.addJobs = (req, res, next) => {
         }
         else {
             // console.log(authData)
+            if (authData.verify != 'Yes') {
+                return res.status(401).json({
+                    status: "Failed",
+                    msg: 'Number not Verified'
+                })
+            }
             const newjob = new Job({ email: authData.email, name: job, id: authData.id })
             newjob.save().then(result => {
                 res.status(200).json({
@@ -253,6 +259,12 @@ module.exports.getJobs = (req, res, next) => {
             return;
         } else {
             // console.log(authData)
+            if (authData.verify != 'Yes') {
+                return res.status(401).json({
+                    status: "Failed",
+                    msg: 'Number not Verified'
+                })
+            }
             const id = authData.id;
             Job.find({ id: id })
                 .then(jobs => {
@@ -308,6 +320,12 @@ module.exports.getVisiter = (req, res, next) => {
             res.sendStatus(403);
             return;
         } else {
+            if (authData.verify != 'Yes') {
+                return res.status(401).json({
+                    status: "Failed",
+                    msg: 'Number not Verified'
+                })
+            }
             // console.log(authData)
             const id = authData.id;
             User.findById(id).then(applications => {
