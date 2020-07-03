@@ -1,10 +1,10 @@
-jwt for auth and login
-validations
-add some data 
-filter of the job applications
+company = Email verification
 forget password
+visiter = Email and Mobile no
+filter in applications
+changing data models for field as REQUIREMENT
+Testing and adding validations as possible
+Super Admin login and restriction
 aws resume
-mailer for updates
 hoting of api
 making docs of api
-subcription for the features
