@@ -22,17 +22,24 @@ router.post('/registerCompany',
         check('name')
             .isLength({ min: 1 })
             .withMessage('Issue in name'),
+        check('hrFirstName')
+            .isLength({ min: 1 })
+            .withMessage('Issue in Hr-name'),
 
-        check('mobileNo')
-            .isLength({ min: 10, max: 10 })
-            .withMessage('Issue in mobileNo')
-            .custom((value) => {
-                return Company.findOne({ mobileNo: value })
-                    .then(com => {
-                        if (com)
-                            return Promise.reject('Student already exist : mobileNo');
-                    })
-            }),
+        check('address')
+            .isLength({ min: 4 })
+            .withMessage('Issue in Address'),
+
+        // check('mobileNo')
+        //     .isLength({ min: 10, max: 10 })
+        //     .withMessage('Issue in mobileNo')
+        //     .custom((value) => {
+        //         return Company.findOne({ mobileNo: value })
+        //             .then(com => {
+        //                 if (com)
+        //                     return Promise.reject('Student already exist : mobileNo');
+        //             })
+        //     }),
 
         check('password')
             .isLength({ min: 8 })
@@ -47,6 +54,9 @@ router.post('/registerCompany',
             })
     ],
     companyComtroller.register)
+
+router.get('/getMsg',
+    companyComtroller.getMsg);
 
 router.post('/loginCompany',
     [
@@ -71,13 +81,10 @@ router.get('/jobs',
     verifyToken,
     companyComtroller.getJobs)
 
-router.get('/getMsg',
-    verifyToken,
-    companyComtroller.getMsg);
+
 
 router.post('/postCode',
     [check('code').isLength({ min: 4, max: 4 }).withMessage('Code is wrong from Basic validity'),],
-    verifyToken,
     companyComtroller.postCode);
 
 router.get('/visiter',

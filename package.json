@@ -18,8 +18,10 @@
     "helmet": "^3.23.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.20",
+    "nodemailer": "^6.4.10",
     "nodemon": "^2.0.4",
     "twilio": "^3.47.0",
-    "validator": "^13.1.1"
+    "validator": "^13.1.1",
+    "xoauth2": "^1.2.0"
   }
 }

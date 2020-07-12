@@ -11,7 +11,7 @@ const { keys } = require('./keys');
 const router = require('./router/router');
 
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 app.use(helmet());
 app.use(compression())
 app.use(express.urlencoded({ extended: false }));

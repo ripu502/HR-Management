@@ -7,9 +7,16 @@ const companySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    type: {
+    address: {
         type: String,
-        // required: true,
+        required: true
+    },
+    hrFirstName: {
+        type: String,
+        required: true
+    },
+    hrLastName: {
+        type: String,
     },
     mobileNo: {
         type: String,
@@ -42,8 +49,5 @@ const companySchema = new mongoose.Schema({
     version: {
         type: String,
     },
-    noVerified:{
-        type: String,
-    }
 })
 module.exports = mongoose.model('Company', companySchema);

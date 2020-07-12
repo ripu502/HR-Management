@@ -5,7 +5,55 @@ const User = require('../Model/User');
 const jwt = require('jsonwebtoken');
 const client = require('twilio')(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN)
 const { validationResult } = require('express-validator');
+const nodemailer = require('nodemailer');
+var xoauth2 = require('xoauth2');
+const { CompositionList } = require('twilio/lib/rest/video/v1/composition');
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    host: "smtp.gmail.com",
+    port: 465,
+    access_type: 'offline',
+    auth: {
+        type: "OAuth2",
+        user: 'ripu502@gmail.com',
+        clientId: process.env.ClientId,
+        clientSecret: process.env.ClientSecret,
+        refreshToken: process.env.RefreshToken,
+        accessToken: process.env.accessToken,
+    }
+});
+// let transporter = nodemailer.createTransport({
+//     host: 'smtp.gmail.com',
+//     port: 465,
+//     secure: true,
+//     auth: {
+//         type: 'OAuth2',
+//         user: 'user@example.com',
+//         clientId: '000000000000-xxx0.apps.googleusercontent.com',
+//         clientSecret: 'XxxxxXXxX0xxxxxxxx0XXxX0',
+//         refreshToken: '1/XXxXxsss-xxxXXXXXxXxx0XXXxxXXx0x00xxx',
+//         accessToken: 'ya29.Xx_XX0xxxxx-xX0X0XxXXxXxXXXxX0x',
+//         expires: 1484314697598
+//     }
+// });
+// const transporter = nodemailer.createTransport({
+//     host: "smtp.gmail.com",
+//     service: 'gmail',
+//     port: 25,
+//     secure: false,
+//     auth: {
+//         xoauth2: xoauth2.createXOAuth2Generator({
+//             user: 'ripu502@gmail.com',
+//             clientId: process.env.ClientId,
+//             clientSecret: process.env.ClientSecret,
+//             refreshToken: process.env.RefreshToken,
+//         })
+//     },
+//     tls: {
+//         rejectUnauthorized: false
+//     }
+// });
 
 
 // Register a Company
@@ -17,78 +65,111 @@ module.exports.register = (req, res, next) => {
         });
     }
     const {
-        name,
-        type,
-        email,
-        password,
-        version,
-        mobileNo
-    } = req.body;
-    const company = new Company({
+        name, hrFirstName, hrLastName, email, password, address } = req.body;
+    const company = {
         name: name,
-        type: type,
-        mobileNo: mobileNo,
+        hrFirstName: hrFirstName,
+        hrLastName: hrLastName,
         email: email,
         password: password,
-        version: version,
-        noVerified: 'No'
-    });
-    company.save().then(result => {
-        res.status(200).json({
-            status: 'OK',
-            'msg': 'Company is Registered'
-        })
-    }).catch(err => {
-        res.status(500).json({
-            status: 'Failed',
-            msg: 'Company is not Registered',
-            err: err
-        })
+        address: address
+    };
+    jwt.sign({ user: company }, 'secretkey', { expiresIn: '1y' }, (err, token) => {
+        if (err) {
+            // console.log(`some err occured ${err}`);
+            res.status(403).json(
+                {
+                    msg: 'try again',
+                    err: err
+                }
+            )
+        } else {
+            const mailOptions = {
+                from: 'ripu502@gmail.com',
+                to: email,// send mail Id sending mail to myself
+                subject: `Mail by contact form from`, // Subject line
+                html: `<p><b>${token}</b><br></p>`// plain text body
+            };
+            transporter.sendMail(mailOptions, function (err, result) {
+                if (err) {
+                    console.log(err);
+                    res.status(403).json(
+                        {
+                            msg: 'try again',
+                            err: err
+                        }
+                    )
+                } else {
+                    // console.log('Email Sent');
+                    res.status(200).json(
+                        {
+                            msg: 'Email is sent'
+                        }
+                    )
+                }
+            })
+            // console.log(token);
+        }
     })
+    // company.save().then(result => {
+    //     res.status(200).json({
+    //         status: 'OK',
+    //         'msg': 'Company is Registered'
+    //     })
+    // }).catch(err => {
+    //     res.status(500).json({
+    //         status: 'Failed',
+    //         msg: 'Company is not Registered',
+    //         err: err
+    //     })
+    // })
 }
 
 module.exports.getMsg = (req, res, next) => {
-    jwt.verify(req.token, 'secretkey', (err, authData) => {
-        if (err) {
-            res.sendStatus(403);
-        } else {
-            const phoneNo = authData.mobileNo;
-            // let data = await 
-            client
-                .verify
-                .services(process.env.SERVICE_ID)
-                .verifications
-                .create({
-                    to: `+91${phoneNo}`,
-                    channel: 'sms'
-                })
+    const { phoneNo } = req.body;
+    // let data = await 
+    client
+        .verify
+        .services(process.env.SERVICE_ID)
+        .verifications
+        .create({
+            to: `+91${phoneNo}`,
+            channel: 'sms'
+        }).then(data => {
+            console.log(data);
             res.status(200).json({
                 msg: 'Hope that the Code is send. Pending!',
             })
-            // .then(data => {
-            //     // sending the data when the otp send and when prob
-            //     console.log(data);
-            //     res.status(200).json({
-            //         // status: 'OK',
-            //         ...data
-            //     })
-            // if (data.status === 'approved') {
-            // } else {
-            //     res.status(401).json({
-            //         status: 'Failed',
-            //         ...data
-            //     })
-            // }
-            // })
-            // .catch(err => {
-            //     res.status(401).json({
-            //         status: 'Failed',
-            //         msg: 'Some err occured',
-            //         err: err
-            //     })
-            // })
-        }
-    })
+        }).catch(err => console.log(err));
+    // jwt.verify(req.token, 'secretkey', (err, authData) => {
+    //     if (err) {
+    //         res.sendStatus(403);
+    //     } else {
+
+    //         // .then(data => {
+    //         //     // sending the data when the otp send and when prob
+    //         //     console.log(data);
+    //         //     res.status(200).json({
+    //         //         // status: 'OK',
+    //         //         ...data
+    //         //     })
+    //         // if (data.status === 'approved') {
+    //         // } else {
+    //         //     res.status(401).json({
+    //         //         status: 'Failed',
+    //         //         ...data
+    //         //     })
+    //         // }
+    //         // })
+    //         // .catch(err => {
+    //         //     res.status(401).json({
+    //         //         status: 'Failed',
+    //         //         msg: 'Some err occured',
+    //         //         err: err
+    //         //     })
+    //         // })
+    //     }
+    // })
 }
 
 
@@ -100,59 +181,81 @@ module.exports.postCode = (req, res, next) => {
             errors: errors.array(),
         });
     }
-    jwt.verify(req.token, 'secretkey', (err, authData) => {
-        if (err) {
-            res.sendStatus(403);
-        } else {
-            let code = req.body.code;
-            client
-                .verify
-                .services(process.env.SERVICE_ID)
-                .verificationChecks
-                .create({
-                    to: `+91${authData.mobileNo}`,
-                    code: code
-                }).then(data => {
-                    if (data.status === "approved") {
-                        Company.findById(authData.id).then(company => {
-                            company.noVerified = 'Yes';
-                            company.save().then(done => {
-                                res.status(200).json({
-                                    status: 'Done',
-                                    msg: 'Number is verified',
-                                    data: done,
-                                })
-                            }).catch(err => {
-                                res.status(401).json({
-                                    status: 'Failed',
-                                    msg: 'Some backend issue',
-                                    err: err
-                                })
+
+    let code = req.body.code;
+    let mobileNo= req.body.mobileNo;
+    client
+        .verify
+        .services(process.env.SERVICE_ID)
+        .verificationChecks
+        .create({
+            to: `+91${mobileNo}`,
+            code: code
+        }).then(data => {
+            if (data.status === "approved") {
+
+                const token = req.body.token;
+
+                jwt.verify(token, 'secretkey', (err, authData) => {
+                    if (err) {
+                        res.sendStatus(403);
+                    } else {
+                        let com = authData.user
+                        com['mobileNo'] = mobileNo;
+                        console.log(com);
+                        const company = new Company(com)
+                        company.save().then(result => {
+                            res.status(200).json({
+                                status: 'OK',
+                                'msg': 'Company is Registered'
                             })
                         }).catch(err => {
-                            console.log('some err');
-                            res.status(401).json({
+                            res.status(500).json({
                                 status: 'Failed',
-                                msg: 'Some backend issue',
+                                msg: 'Company is not Registered',
                                 err: err
                             })
                         })
-                    } else {
-                        res.status(401).json({
-                            status: 'Failed',
-                            msg: 'Looks like wrong code',
-                            // err: err
-                        })
                     }
-                }).catch(err => {
-                    res.status(401).json({
-                        status: 'Failed',
-                        msg: 'Some err occured',
-                        err: err
-                    })
                 })
-        }
-    })
+
+                // Company.findById(authData.id).then(company => {
+                //     company.noVerified = 'Yes';
+                //     company.save().then(done => {
+                //         res.status(200).json({
+                //             status: 'Done',
+                //             msg: 'Number is verified',
+                //             data: done,
+                //         })
+                //     }).catch(err => {
+                //         res.status(401).json({
+                //             status: 'Failed',
+                //             msg: 'Some backend issue',
+                //             err: err
+                //         })
+                //     })
+                // }).catch(err => {
+                //     console.log('some err');
+                //     res.status(401).json({
+                //         status: 'Failed',
+                //         msg: 'Some backend issue',
+                //         err: err
+                //     })
+                // })
+            } else {
+                res.status(401).json({
+                    status: 'Failed',
+                    msg: 'Looks like wrong code',
+                    // err: err
+                })
+            }
+        }).catch(err => {
+            res.status(401).json({
+                status: 'Failed',
+                msg: 'Some err occured',
+                err: err
+            })
+        })
 }
 
 // Login the Company and signing the token for 1 year
