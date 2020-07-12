@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 app.use(router);
 
 
-mongoose.connect(keys.mongoUri,
+mongoose.connect(`mongodb+srv://${process.env.MongoUser}:${process.env.MongoPassword}@cluster0-jywn3.mongodb.net/${process.env.MongoDatabase}?retryWrites=true`,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
