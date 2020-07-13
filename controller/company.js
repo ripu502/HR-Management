@@ -280,6 +280,7 @@ module.exports.login = (req, res, next) => {
                         })
                     } else {
                         res.json({
+                            companyId: com._id,
                             status: 'OK',
                             token: token,
                             validity: '1y',

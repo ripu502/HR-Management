@@ -9,3 +9,32 @@ aws resume
 hoting of api
 making docs of api
 
+############ company
+company register
+company login
+company add jobs
+company get jobs
+company logout
+
+
+################ applicatant
+
+
+############# super Admin
+
+
+
+############### Interviewer
+
+
+
+----------------------------------
+id issue
+aws issue
+dicuss applicatant registration
+
+applications register 
+applications get from company 
+add Interviewer
+Interviewer updates the status
+
