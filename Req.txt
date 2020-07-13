@@ -15,9 +15,13 @@ company login
 company add jobs
 company get jobs
 company logout
-
+company get the applications
 
 ################ applicatant
+savend details
+email and phone varified
+applications saved
+
 
 
 ############# super Admin
@@ -29,7 +33,6 @@ company logout
 
 
 ----------------------------------
-id issue
 aws issue
 dicuss applicatant registration
 

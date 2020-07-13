@@ -94,27 +94,51 @@ router.get('/comapanyjobs:id',
     companyComtroller.getJobs)
 
 
-
-router.get('/visiter',
-    verifyToken,
-    companyComtroller.getVisiter);
-
+// add the applicatent step 1
 router.post('/visiter',
     [
         check('email').isEmail().withMessage('Issue in email')
             .normalizeEmail(),
 
-        check('name').isLength({ min: 1 }).withMessage('Issue in name'),
+        check('fname').isLength({ min: 1 }).withMessage('Issue in fname'),
 
-        check('mobileNo').isLength({ min: 10, max: 10 }).withMessage('Issue in mobileNo'),
+        // check('mobileNo').isLength({ min: 10, max: 10 }).withMessage('Issue in mobileNo'),
 
         check('companyId').isLength({ min: 24, max: 24 }).withMessage('Issue in companyId'),
 
-        check('job').isLength({ min: 1 }).withMessage('Issue in job'),
+        check('jobName').isLength({ min: 1 }).withMessage('Issue in job'),
+
+        check('address')
+            .isLength({ min: 4 })
+            .withMessage('Issue in Address'),
+
+        check('resumeUrl').isURL().withMessage('Issue in the Resume'),
+
+        check('noticePeroid').isLength({ min: 1 }).withMessage('Issue in the Notice Period'),
+
+        check('source').isLength({ min: 3 }).withMessage('Issue in the Source'),
 
 
     ],
     companyComtroller.addApplication)
+
+// visiter get the code from the compamy create getmsg()
+
+// saving of application
+router.post('/saveapplication',
+    [check('code').isLength({ min: 4, max: 4 })
+        .withMessage('Code is wrong from Basic validity'),
+
+    check('mobileNo').isNumeric()
+        .isLength({ min: 10, max: 10 }).withMessage('Issue in mobileNo')
+    ],
+    companyComtroller.postcodeAppli)
+
+router.get('/visiter',
+    verifyToken,
+    companyComtroller.getVisiter);
+
+
 
 // router.get('/companylogout', verifyToken, companyComtroller.logout)
 

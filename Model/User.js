@@ -2,9 +2,12 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
-    name: {
+    fname: {
         type: String,
         required: true
+    },
+    lname: {
+        type: String,
     },
     mobileNo: {
         type: String,
@@ -33,12 +36,39 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    job: {
+    address: {
+        type: String,
+        required: true
+    },
+    jobName: {
         type: String,
         required: true,
     },
-    resume: {
+    source: {
         type: String,
+        required: true
+    },
+    currentDesignation: {
+        type: String,
+    },
+    cCTC: {
+        type: String,
+    },
+    eCTC: {
+        type: String,
+    },
+    noticePeroid: {
+        type: String,
+        required: true,
+    },
+    skills: {
+        type: String,
+    },
+    resumeUrl: {
+        type: String,
+    },
+    status: {
+        type: String
     }
 })
 module.exports = mongoose.model('User', userSchema);
