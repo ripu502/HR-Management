@@ -30,17 +30,6 @@ router.post('/registerCompany',
             .isLength({ min: 4 })
             .withMessage('Issue in Address'),
 
-        // check('mobileNo')
-        //     .isLength({ min: 10, max: 10 })
-        //     .withMessage('Issue in mobileNo')
-        //     .custom((value) => {
-        //         return Company.findOne({ mobileNo: value })
-        //             .then(com => {
-        //                 if (com)
-        //                     return Promise.reject('Student already exist : mobileNo');
-        //             })
-        //     }),
-
         check('password')
             .isLength({ min: 8 })
             .withMessage('Password is empty or short'),
@@ -56,7 +45,23 @@ router.post('/registerCompany',
     companyComtroller.register)
 
 router.get('/getMsg',
+    // check('mobileNo')
+    //     .isLength({ min: 10, max: 10 })
+    //     .withMessage('Issue in mobileNo')
+    //     .custom((value) => {
+    //         return Company.findOne({ mobileNo: value })
+    //             .then(com => {
+    //                 if (com)
+    //                     return Promise.reject('Student already exist : mobileNo');
+    //             })
+    //     }),
     companyComtroller.getMsg);
+
+router.post('/postCode',
+    [check('code').isLength({ min: 4, max: 4 }).withMessage('Code is wrong from Basic validity'),],
+    companyComtroller.postCode);
+
+
 
 router.post('/loginCompany',
     [
@@ -69,23 +74,26 @@ router.post('/loginCompany',
 
 router.post('/addJobs',
     [
-        check('email').isEmail().withMessage('Issue in email').normalizeEmail(),
+        check('jobName').isLength({ min: 1 }).withMessage('Issue in job Name'),
 
-        check('job').isLength({ min: 1 }).withMessage('Issue in job'),
+        check('vacancy').isNumeric().withMessage('Issue in No. of vacancy'),
+
+        check('datefrom').isLength({ min: 8, max: 10 }).withMessage('Issue in datefrom'),
+
+        check('dateto').isLength({ min: 8, max: 10 }).withMessage('Issue in dateto'),
+
+        check('timefrom').isLength({ min: 4, max: 5 }).withMessage('Issue in timefrom'),
+
+        check('timeto').isLength({ min: 4, max: 5 }).withMessage('Issue in timeto'),
 
     ],
     verifyToken,
     companyComtroller.addJobs)
 
-router.get('/jobs',
-    verifyToken,
+router.get('/comapanyjobs:id',
     companyComtroller.getJobs)
 
 
-
-router.post('/postCode',
-    [check('code').isLength({ min: 4, max: 4 }).withMessage('Code is wrong from Basic validity'),],
-    companyComtroller.postCode);
 
 router.get('/visiter',
     verifyToken,
@@ -108,6 +116,8 @@ router.post('/visiter',
     ],
     companyComtroller.addApplication)
 
+// router.get('/companylogout', verifyToken, companyComtroller.logout)
+
 
 // Super admin routes 
 
@@ -122,6 +132,14 @@ router.get('/admin/jobs',
 router.get('/admin/company',
     // verifyToken,
     adminHandler.getCompanies)
+
+router.use('/',
+    // verifyToken,
+    (req, res) => {
+        res.status(404).json({
+            msg: 'Bad req'
+        })
+    })
 
 module.exports = router;
 

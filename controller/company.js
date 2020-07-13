@@ -183,7 +183,7 @@ module.exports.postCode = (req, res, next) => {
     }
 
     let code = req.body.code;
-    let mobileNo= req.body.mobileNo;
+    let mobileNo = req.body.mobileNo;
     client
         .verify
         .services(process.env.SERVICE_ID)
@@ -322,7 +322,8 @@ module.exports.addJobs = (req, res, next) => {
             errors: errors.array(),
         });
     }
-    const { email, job, token } = req.body;
+    const { jobName, datefrom, dateto, timefrom,
+        timeto, skills, vacancy } = req.body;
     jwt.verify(req.token, 'secretkey', (err, authData) => {
         if (err) {
             console.log(err);
@@ -331,13 +332,10 @@ module.exports.addJobs = (req, res, next) => {
         }
         else {
             // console.log(authData)
-            if (authData.verify != 'Yes') {
-                return res.status(401).json({
-                    status: "Failed",
-                    msg: 'Number not Verified'
-                })
-            }
-            const newjob = new Job({ email: authData.email, name: job, id: authData.id })
+            const newjob = new Job({
+                companyid: authData.id, jobName,
+                datefrom, dateto, timefrom, timeto, skills, vacancy
+            })
             newjob.save().then(result => {
                 res.status(200).json({
                     status: 'OK',
@@ -356,36 +354,55 @@ module.exports.addJobs = (req, res, next) => {
 
 // Company Get the Jobs which were added by it. require login
 module.exports.getJobs = (req, res, next) => {
-    jwt.verify(req.token, 'secretkey', (err, authData) => {
+    const companyid = req.params.id;
+    // // console.log(typeof idc);
+    // console.log(`${companyid}  5f0b73dc92f70f41c875e738`)
+    Job.find({ companyid })
+        .then(jobs => {
+            console.log(jobs);
+            if (jobs != null) {
+                res.status(200).json(jobs);
+            }
+        })
+        .catch(err => {
+            res.status(500).json({
+                status: 'Failed',
+                msg: 'Try again',
+                err: err
+            })
+        });
+
+
+    // jwt.verify(req.token, 'secretkey', (err, authData) => {
+    //     if (err) {
+    //         res.sendStatus(403);
+    //         return;
+    //     } else {
+    //         // console.log(authData)
+    //         if (authData.verify != 'Yes') {
+    //             return res.status(401).json({
+    //                 status: "Failed",
+    //                 msg: 'Number not Verified'
+    //             })
+    //         }
+
+    //     }
+    // })
+}
+
+module.exports.logout = (req, res, next) => {
+    jwt.verify(req.token, 'secretkey', async (err, authData) => {
         if (err) {
             res.sendStatus(403);
-            return;
         } else {
             // console.log(authData)
-            if (authData.verify != 'Yes') {
-                return res.status(401).json({
-                    status: "Failed",
-                    msg: 'Number not Verified'
-                })
-            }
-            const id = authData.id;
-            Job.find({ id: id })
-                .then(jobs => {
-                    if (jobs != null) {
-                        res.status(200).json(jobs);
-                    }
-                })
-                .catch(err => {
-                    res.status(500).json({
-                        status: 'Failed',
-                        msg: 'Try again',
-                        err: err
-                    })
-                });
+            await jwt.destroy(req.token);
+            res.status(200).json({
+                msg: 'Campany logout Success'
+            })
         }
     })
 }
-
 
 // applicant apply for the job
 module.exports.addApplication = (req, res, next) => {
