@@ -40,7 +40,7 @@ router.post(
   companyComtroller.register
 );
 
-router.get(
+router.post(
   "/getMsg",
   check("phoneNo")
     .isLength({ min: 10, max: 10 })
