@@ -41,3 +41,11 @@ applications get from company
 add Interviewer
 Interviewer updates the status
 
+-----------------------
+correct the spelling of noticePeriod
+make the postman collection 
+deploy the code
+hrregister Interviewer;
+hr register password;
+hr login 
+hr add status and feedback

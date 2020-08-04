@@ -5,6 +5,10 @@ const Company = require("../Model/Company");
 const adminHandler = require("../controller/admin");
 const companyComtroller = require("../controller/company");
 
+/**
+ * Comapany
+ */
+
 router.post(
   "/registerCompany",
   [
@@ -45,22 +49,13 @@ router.post(
   check("phoneNo")
     .isLength({ min: 10, max: 10 })
     .withMessage("Mobile Number is not Valid"),
-  //     .custom((value) => {
-  //         return Company.findOne({ mobileNo: value })
-  //             .then(com => {
-  //                 if (com)
-  //                     return Promise.reject('Student already exist : mobileNo');
-  //             })
-  //     }),
   companyComtroller.getMsg
 );
 
 router.post(
   "/postCode",
   [
-    check("code")
-      .isLength({ min: 4, max: 4 })
-      .withMessage("Code is wrong"),
+    check("code").isLength({ min: 4, max: 4 }).withMessage("Code is wrong"),
     check("mobileNo")
       .isLength({ min: 10, max: 10 })
       .withMessage("Mobile Number is Invalid"),
@@ -103,17 +98,25 @@ router.post(
   companyComtroller.addJobs
 );
 
+router.post(
+  "/company/add/interviewer",
+  verifyToken,
+  companyComtroller.addInterviwer
+);
+
+router.get("/visiter", verifyToken, companyComtroller.getVisiter);
+
 router.get("/comapanyjobs:id", companyComtroller.getJobs);
 
-// add the applicatent step 1
+/**
+ * Visiter / applicant / Candidate
+ */
 router.post(
   "/visiter",
   [
     check("email").isEmail().withMessage("Issue in email").normalizeEmail(),
 
     check("fname").isLength({ min: 1 }).withMessage("Issue in fname"),
-
-    // check('mobileNo').isLength({ min: 10, max: 10 }).withMessage('Issue in mobileNo'),
 
     check("companyId")
       .isLength({ min: 24, max: 24 })
@@ -125,7 +128,7 @@ router.post(
 
     check("resumeUrl").isURL().withMessage("Issue in the Resume"),
 
-    check("noticePeroid")
+    check("noticePeriod")
       .isLength({ min: 1 })
       .withMessage("Issue in the Notice Period"),
 
@@ -134,9 +137,6 @@ router.post(
   companyComtroller.addApplication
 );
 
-// visiter get the code from the compamy create getmsg()
-
-// saving of application
 router.post(
   "/saveapplication",
   [
@@ -152,29 +152,45 @@ router.post(
   companyComtroller.postcodeAppli
 );
 
-router.get("/visiter", verifyToken, companyComtroller.getVisiter);
+/**
+ * Interviewer
+ */
+router.post("/register/interviewer", companyComtroller.registerInterviewer);
 
-// router.get('/companylogout', verifyToken, companyComtroller.logout)
-
-// Super admin routes
+router.post("/login/interviewer", companyComtroller.loginInterviewer);
 
 router.get(
+  "/intervier/get/applications",
+  verifyToken,
+  companyComtroller.interviewerApplicant
+);
+
+router.post(
+  "/interviewer/post/review",
+  verifyToken,
+  companyComtroller.interviewerAddReview
+);
+
+/**
+ * Admin Super
+ */
+router.get(
   "/admin/visiter",
-  // verifyToken,
   adminHandler.getVisiter
 );
 
 router.get(
   "/admin/jobs",
-  // verifyToken,
   adminHandler.getJobs
 );
 
 router.get(
   "/admin/company",
-  // verifyToken,
   adminHandler.getCompanies
 );
+/**
+ * 404 Page not found
+ */
 
 router.use(
   "/",
@@ -188,7 +204,9 @@ router.use(
 
 module.exports = router;
 
-// making the helper for verify the presence of the jwt token
+/**
+ * Helper for JWT token AUTH
+ */
 function verifyToken(req, res, next) {
   const bearerHeader = req.headers["authorization"];
   if (typeof bearerHeader !== "undefined") {
