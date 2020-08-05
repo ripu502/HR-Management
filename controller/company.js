@@ -1,6 +1,5 @@
 const Company = require("../Model/Company");
 const Job = require("../Model/Jobs");
-const { models } = require("mongoose");
 const User = require("../Model/User");
 const jwt = require("jsonwebtoken");
 const client = require("twilio")(
@@ -9,9 +8,9 @@ const client = require("twilio")(
 );
 const { validationResult } = require("express-validator");
 const nodemailer = require("nodemailer");
-var xoauth2 = require("xoauth2");
-const { CompositionList } = require("twilio/lib/rest/video/v1/composition");
+
 const Interviwer = require("../Model/Interviewer");
+const { models } = require("mongoose");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -60,7 +59,7 @@ module.exports.register = (req, res, next) => {
         const mailOptions = {
           from: "ripu502@gmail.com",
           to: email, // send mail Id sending mail to myself
-          subject: `Mail by contact form from`, // Subject line
+          subject: `Register the company Hr`, // Subject line
           html: `<p><b>${token}</b><br></p>`, // plain text body
         };
         transporter.sendMail(mailOptions, function (err, result) {
@@ -355,7 +354,7 @@ module.exports.addApplication = (req, res, next) => {
       const mailOptions = {
         from: "ripu502@gmail.com",
         to: email, // send mail Id sending mail to myself
-        subject: `Mail by contact form from`, // Subject line
+        subject: `Applicant Registry`, // Subject line
         html: `<p><b>${token}</b><br></p>`, // plain text body
       };
       transporter.sendMail(mailOptions, function (err, result) {
@@ -406,6 +405,7 @@ module.exports.postcodeAppli = (req, res, next) => {
             let usr = authData.user;
             usr["mobileNo"] = mobileNo;
             usr["status"] = "Not Seen";
+            usr["feedback"] = "";
             // console.log(usr);
             const user = new User(usr);
             user
@@ -473,6 +473,12 @@ module.exports.getVisiter = (req, res, next) => {
 };
 
 module.exports.addInterviwer = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      errors: errors.array(),
+    });
+  }
   jwt.verify(req.token, "secretkey", (err, authData) => {
     if (err) {
       res.sendStatus(403);
@@ -482,40 +488,87 @@ module.exports.addInterviwer = (req, res, next) => {
       const { email, profile } = req.body;
       const InterviewerData = {
         email: email,
-        profile: profile,
+        profile: [profile],
         companyId: companyId,
       };
-      jwt.sign(
-        { user: InterviewerData },
-        "secretkey",
-        { expiresIn: "1h" },
-        (err, token) => {
-          if (err) {
-            console.log(`some err occured ${err}`);
-          } else {
-            const mailOptions = {
-              from: "ripu502@gmail.com",
-              to: email, // send mail Id sending mail to myself
-              subject: `Mail by contact form from`, // Subject line
-              html: `<p><b>${token}</b><br></p>`, // plain text body
-            };
-            transporter.sendMail(mailOptions, function (err, result) {
-              if (err) {
-                console.log(err);
-                res.status(403).json({
-                  msg: "try again",
+      Interviwer.findOne({ email: email })
+        .then((interviewer) => {
+          if (interviewer) {
+            console.log("printing profile");
+            console.log(interviewer.profile);
+            let updatedProfile = interviewer.profile;
+            updatedProfile.push(profile);
+            interviewer.profile = updatedProfile;
+            interviewer
+              .save()
+              .then((updatedInterviewer) => {
+                const mailOptions = {
+                  from: "ripu502@gmail.com",
+                  to: email, // send mail Id sending mail to myself
+                  subject: `Interview is assigned new profile`, // Subject line
+                  html: `<p><b>you are added for ${profile} profile</b><br></p>`, // plain text body
+                };
+                transporter.sendMail(mailOptions, function (err, result) {
+                  if (err) {
+                    console.log(err);
+                    res.status(422).json({
+                      msg: "try again from mail",
+                      err: err,
+                    });
+                  } else {
+                    // console.log('Email Sent');
+                    res.status(200).json({
+                      msg: "Email is sent",
+                    });
+                  }
+                });
+              })
+              .catch((err) => {
+                res.status(422).json({
+                  msg: "try again cant update",
                   err: err,
                 });
-              } else {
-                // console.log('Email Sent');
-                res.status(200).json({
-                  msg: "Email is sent",
-                });
+              });
+          } else {
+            jwt.sign(
+              { user: InterviewerData },
+              "secretkey",
+              { expiresIn: "1h" },
+              (err, token) => {
+                if (err) {
+                  console.log(`some err occured ${err}`);
+                } else {
+                  const mailOptions = {
+                    from: "ripu502@gmail.com",
+                    to: email, // send mail Id sending mail to myself
+                    subject: `Added new Interviewer`, // Subject line
+                    html: `<p><b>${token}</b><br></p>`, // plain text body
+                  };
+                  transporter.sendMail(mailOptions, function (err, result) {
+                    if (err) {
+                      console.log(err);
+                      res.status(403).json({
+                        msg: "try again from mail 2",
+                        err: err,
+                      });
+                    } else {
+                      // console.log('Email Sent');
+                      res.status(200).json({
+                        msg: "Email is sent",
+                      });
+                    }
+                  });
+                }
               }
-            });
+            );
           }
-        }
-      );
+        })
+        .catch((err) => {
+          res.status(403).json({
+            msg: "try again from last one",
+            err: err,
+          });
+        });
     }
   });
 };
@@ -552,14 +605,14 @@ module.exports.registerInterviewer = (req, res, next) => {
 };
 
 module.exports.loginInterviewer = (req, res, next) => {
-  const { id, password } = req.body;
+  const { email, password } = req.body;
   //   const errors = validationResult(req);
   //   if (!errors.isEmpty()) {
   //     return res.status(422).json({
   //       errors: errors.array(),
   //     });
   //   }
-  Interviwer.findOne({ _id: id })
+  Interviwer.findOne({ email: email })
     .then((interviewer) => {
       if (interviewer != null) {
         console.log(interviewer.password, password);
@@ -567,7 +620,7 @@ module.exports.loginInterviewer = (req, res, next) => {
           jwt.sign(
             {
               companyId: interviewer.companyId,
-              profile: interviewer.profile,
+              id: interviewer._id,
             },
             "secretkey",
             { expiresIn: "1y" },
@@ -622,7 +675,7 @@ module.exports.interviewerApplicant = (req, res, next) => {
     } else {
       // console.log(authData)
       const id = authData.companyId;
-      const profile = authData.profile;
+      const profile = req.body.profile;
       User.find({ companyId: id.toString(), jobName: profile })
         .then((applications) => {
           if (applications != null) {
@@ -665,6 +718,26 @@ module.exports.interviewerAddReview = (req, res, next) => {
             });
           });
       });
+    }
+  });
+};
+
+module.exports.interviewerProfiles = (req, res, next) => {
+  jwt.verify(req.token, "secretkey", (err, authData) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      Interviwer.findOne({ _id: authData.id }, { profile: 1, _id: 0 })
+        .then((interviewerDetails) => {
+          res.status(200).json(interviewerDetails);
+        })
+        .catch((err) => {
+          res.status(500).json({
+            status: "Failed",
+            msg: "Try againn",
+            err: err,
+          });
+        });
     }
   });
 };

@@ -5,7 +5,7 @@ const interviewerSchema = new mongoose.Schema({
     required: true,
   },
   profile: {
-    type: String,
+    type: Array,
     required: true,
   },
   email: {
@@ -18,4 +18,4 @@ const interviewerSchema = new mongoose.Schema({
     required: true,
   },
 });
-module.exports = mongoose.model("Interview", interviewerSchema);
+module.exports = mongoose.model("Interviewer", interviewerSchema);

@@ -10,7 +10,7 @@ const companyComtroller = require("../controller/company");
  */
 
 router.post(
-  "/registerCompany",
+  "/company/register",
   [
     check("name").isLength({ min: 1 }).withMessage("Name is Empty"),
     check("address")
@@ -64,7 +64,7 @@ router.post(
 );
 
 router.post(
-  "/loginCompany",
+  "/company/login",
   [
     check("email").isEmail().withMessage("Issue in email").normalizeEmail(),
 
@@ -100,6 +100,13 @@ router.post(
 
 router.post(
   "/company/add/interviewer",
+  [
+    check("email")
+      .isEmail()
+      .withMessage("Email is not correct")
+      .normalizeEmail(),
+    check("profile").isLength({ min: 1 }).withMessage("Profile is empty"),
+  ],
   verifyToken,
   companyComtroller.addInterviwer
 );
@@ -138,7 +145,7 @@ router.post(
 );
 
 router.post(
-  "/saveapplication",
+  "/save/application",
   [
     check("code")
       .isLength({ min: 4, max: 4 })
@@ -155,12 +162,36 @@ router.post(
 /**
  * Interviewer
  */
-router.post("/register/interviewer", companyComtroller.registerInterviewer);
+router.post(
+  "/interviewer/register",
+  [
+    check("password").isLength({ min: 6 }).withMessage("Password is too short"),
+    check("token").isLength({ min: 10 }).withMessage("Token is Invalid"),
+  ],
+  companyComtroller.registerInterviewer
+);
 
-router.post("/login/interviewer", companyComtroller.loginInterviewer);
+router.post(
+  "/interviewer/login",
+  [
+    check("email")
+      .isEmail()
+      .withMessage("Email is not correct")
+      .normalizeEmail(),
+    check("password").isLength({ min: 6 }).withMessage("Password is Wrong"),
+  ],
+  companyComtroller.loginInterviewer
+);
 
 router.get(
+  "/interviewer/getMyProfiles",
+  verifyToken,
+  companyComtroller.interviewerProfiles
+);
+
+router.post(
   "/intervier/get/applications",
+  [check("profile").isLength({ min: 1 }).withMessage("profile is not present")],
   verifyToken,
   companyComtroller.interviewerApplicant
 );
@@ -174,20 +205,11 @@ router.post(
 /**
  * Admin Super
  */
-router.get(
-  "/admin/visiter",
-  adminHandler.getVisiter
-);
+router.get("/admin/visiter", adminHandler.getVisiter);
 
-router.get(
-  "/admin/jobs",
-  adminHandler.getJobs
-);
+router.get("/admin/jobs", adminHandler.getJobs);
 
-router.get(
-  "/admin/company",
-  adminHandler.getCompanies
-);
+router.get("/admin/company", adminHandler.getCompanies);
 /**
  * 404 Page not found
  */
