@@ -15,22 +15,12 @@ const userSchema = new mongoose.Schema({
     minlength: 10,
     maxlength: 10,
     unique: true,
-    validate(value) {
-      if (!validator.isMobilePhone(value, ["en-IN"])) {
-        throw new Error("Please Enter a valid mobile number");
-      }
-    },
   },
   email: {
     type: String,
     required: true,
     lowercase: true,
     uniqueCaseInsensitive: true,
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error("Please enter a proper email");
-      }
-    },
   },
   companyId: {
     type: String,
