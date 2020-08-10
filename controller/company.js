@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
   access_type: "offline",
   auth: {
     type: "OAuth2",
-    user: "ripu502@gmail.com",
+    user: process.env.email,
     clientId: process.env.ClientId,
     clientSecret: process.env.ClientSecret,
     refreshToken: process.env.RefreshToken,
@@ -57,10 +57,10 @@ module.exports.register = (req, res, next) => {
         });
       } else {
         const mailOptions = {
-          from: "ripu502@gmail.com",
+          from: process.env.email,
           to: email, // send mail Id sending mail to myself
           subject: `Register the company Hr`, // Subject line
-          html: `<p><b>${token}</b><br></p>`, // plain text body
+          html: `<a href="${process.env.hrUrl}${token}">Click me</a>`, // plain text body
         };
         transporter.sendMail(mailOptions, function (err, result) {
           if (err) {
@@ -352,10 +352,10 @@ module.exports.addApplication = (req, res, next) => {
       });
     } else {
       const mailOptions = {
-        from: "ripu502@gmail.com",
+        from: process.env.email,
         to: email, // send mail Id sending mail to myself
         subject: `Applicant Registry`, // Subject line
-        html: `<p><b>${token}</b><br></p>`, // plain text body
+        html: `<a href="${process.env.candidateUrl}${token}">Click me</a>`, // plain text body
       };
       transporter.sendMail(mailOptions, function (err, result) {
         if (err) {
@@ -503,7 +503,7 @@ module.exports.addInterviwer = (req, res, next) => {
               .save()
               .then((updatedInterviewer) => {
                 const mailOptions = {
-                  from: "ripu502@gmail.com",
+                  from: process.env.email,
                   to: email, // send mail Id sending mail to myself
                   subject: `Interview is assigned new profile`, // Subject line
                   html: `<p><b>you are added for ${profile} profile</b><br></p>`, // plain text body
@@ -539,10 +539,10 @@ module.exports.addInterviwer = (req, res, next) => {
                   console.log(`some err occured ${err}`);
                 } else {
                   const mailOptions = {
-                    from: "ripu502@gmail.com",
+                    from: process.env.email,
                     to: email, // send mail Id sending mail to myself
                     subject: `Added new Interviewer`, // Subject line
-                    html: `<p><b>${token}</b><br></p>`, // plain text body
+                    html: `<a href="${process.env.interviewerUrl}${token}">Click me</a>`, // plain text body
                   };
                   transporter.sendMail(mailOptions, function (err, result) {
                     if (err) {
