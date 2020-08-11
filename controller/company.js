@@ -11,6 +11,9 @@ const nodemailer = require("nodemailer");
 
 const Interviwer = require("../Model/Interviewer");
 const { models } = require("mongoose");
+const {
+  ModelBuildContext,
+} = require("twilio/lib/rest/autopilot/v1/assistant/modelBuild");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -741,4 +744,50 @@ module.exports.interviewerProfiles = (req, res, next) => {
     }
   });
 };
+
+module.exports.getInterviewer = (req, res, next) => {
+  jwt.verify(req.token, "secretkey", (err, authData) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      Interviwer.find()
+        .then((result) => {
+          res.status(200).json({
+            status: "OK",
+            interviewer: result,
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({
+            status: "Failed",
+            err: err,
+          });
+        });
+    }
+  });
+};
+
+module.exports.deleteInterviewer = (req, res, next) => {
+  jwt.verify(req.token, "secretkey", (err, authData) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      let id = req.body.id;
+      Interviwer.findByIdAndDelete(id)
+        .then((result) => {
+          res.status(200).json({
+            status: "OK",
+            msg: "Interviewer is Deleted.",
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({
+            status: "Failed",
+            err: err,
+          });
+        });
+    }
+  });
+};
+
 // company delete job

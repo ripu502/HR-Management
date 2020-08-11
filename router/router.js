@@ -111,6 +111,18 @@ router.post(
   companyComtroller.addInterviwer
 );
 
+router.get(
+  "/company/get/interviewers",
+  verifyToken,
+  companyComtroller.getInterviewer
+);
+
+router.post(
+  "/company/delete/interviewer",
+  verifyToken,
+  companyComtroller.deleteInterviewer
+);
+
 router.get("/visiter", verifyToken, companyComtroller.getVisiter);
 
 router.get("/comapanyjobs:id", companyComtroller.getJobs);
