@@ -211,6 +211,7 @@ router.post(
 router.post(
   "/interviewer/post/review",
   verifyToken,
+  [check("status").isLength({ min: 1 }).withMessage("Status is Required")],
   companyComtroller.interviewerAddReview
 );
 

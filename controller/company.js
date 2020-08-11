@@ -536,7 +536,7 @@ module.exports.addInterviwer = (req, res, next) => {
             jwt.sign(
               { user: InterviewerData },
               "secretkey",
-              { expiresIn: "1h" },
+              { expiresIn: "15m" },
               (err, token) => {
                 if (err) {
                   console.log(`some err occured ${err}`);
@@ -699,6 +699,12 @@ module.exports.interviewerApplicant = (req, res, next) => {
 };
 
 module.exports.interviewerAddReview = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      errors: errors.array(),
+    });
+  }
   jwt.verify(req.token, "secretkey", (err, authData) => {
     if (err) {
       res.sendStatus(403);
@@ -750,7 +756,8 @@ module.exports.getInterviewer = (req, res, next) => {
     if (err) {
       res.sendStatus(403);
     } else {
-      Interviwer.find()
+      const id = authData.id;
+      Interviwer.find({ companyId: id.toString() })
         .then((result) => {
           res.status(200).json({
             status: "OK",
