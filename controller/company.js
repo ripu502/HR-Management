@@ -63,7 +63,7 @@ module.exports.register = (req, res, next) => {
           from: process.env.email,
           to: email, // send mail Id sending mail to myself
           subject: `Register the company Hr`, // Subject line
-          html: `<a href="${process.env.hrUrl}${token}">Click me</a>`, // plain text body
+          html: `You can comfirm your Email by <a href="${process.env.hrUrl}${token}">Clicking here.</a> You will be redirected to your registration process.`, // plain text body
         };
         transporter.sendMail(mailOptions, function (err, result) {
           if (err) {
@@ -358,7 +358,7 @@ module.exports.addApplication = (req, res, next) => {
         from: process.env.email,
         to: email, // send mail Id sending mail to myself
         subject: `Applicant Registry`, // Subject line
-        html: `<a href="${process.env.candidateUrl}${token}">Click me</a>`, // plain text body
+        html: `You can comfirm your Email by <a href="${process.env.candidateUrl}${token}">Clicking here.</a> You will be redirected to continue your application`, // plain text body
       };
       transporter.sendMail(mailOptions, function (err, result) {
         if (err) {
@@ -545,7 +545,7 @@ module.exports.addInterviwer = (req, res, next) => {
                     from: process.env.email,
                     to: email, // send mail Id sending mail to myself
                     subject: `Added new Interviewer`, // Subject line
-                    html: `<a href="${process.env.interviewerUrl}${token}">Click me</a>`, // plain text body
+                    html: `You can comfirm your Interviewer request by <a href="${process.env.interviewerUrl}${token}">Clicking here.</a> You will be redirected to generate your password.`, // plain text body
                   };
                   transporter.sendMail(mailOptions, function (err, result) {
                     if (err) {
