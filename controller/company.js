@@ -774,6 +774,29 @@ module.exports.getInterviewer = (req, res, next) => {
   });
 };
 
+module.exports.information = (req, res, next) => {
+  jwt.verify(req.token, "secretkey", (err, authData) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      const id = authData.id;
+      Company.find({ _id: id.toString() }, { password: 0, vesion: 0 })
+        .then((result) => {
+          res.status(200).json({
+            status: "OK",
+            Details: result,
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({
+            status: "Failed",
+            err: err,
+          });
+        });
+    }
+  });
+};
+
 module.exports.deleteInterviewer = (req, res, next) => {
   jwt.verify(req.token, "secretkey", (err, authData) => {
     if (err) {

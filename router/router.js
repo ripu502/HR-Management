@@ -117,6 +117,12 @@ router.get(
   companyComtroller.getInterviewer
 );
 
+router.get(
+  "/company/get/information",
+  verifyToken,
+  companyComtroller.information
+);
+
 router.post(
   "/company/delete/interviewer",
   verifyToken,
