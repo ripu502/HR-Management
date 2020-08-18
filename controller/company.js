@@ -447,7 +447,7 @@ module.exports.postcodeAppli = (req, res, next) => {
     });
 };
 
-// comapany review the application requires login of company
+// company review the application requires login of company
 module.exports.getVisiter = (req, res, next) => {
   jwt.verify(req.token, "secretkey", (err, authData) => {
     if (err) {
@@ -792,6 +792,128 @@ module.exports.information = (req, res, next) => {
             status: "Failed",
             err: err,
           });
+        });
+    }
+  });
+};
+
+module.exports.forgetPassCompany = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      errors: errors.array(),
+    });
+  }
+  let { email } = req.body;
+  Company.findOne({ email: email })
+    .then((company) => {
+      if (company != null) {
+        jwt.sign(
+          {
+            user: company._id,
+          },
+          "secretkey",
+          {
+            expiresIn: "20m",
+          },
+          (err, token) => {
+            if (err) {
+              console.log(`some err occured ${err}`);
+              return res.status(500).json({
+                status: "Failed",
+                err: err,
+              });
+            } else {
+              company.resetToken = token;
+              company
+                .save()
+                .then((result) => {
+                  const mailOptions = {
+                    from: process.env.email,
+                    to: email, // send mail Id sending mail to myself
+                    subject: `Mail for reset Password`, // Subject line
+                    html: `You can reset you password by using this one time recovery link. <a href="${process.env.forgetCompany}${token}">Clicking here.</a> You will be redirected to your Reset process.`, // plain text body
+                  };
+                  transporter.sendMail(mailOptions, function (err, result) {
+                    if (err) {
+                      console.log(err);
+                      res.status(403).json({
+                        msg: "try again",
+                        err: err,
+                      });
+                    } else {
+                      // console.log('Email Sent');
+                      res.status(200).json({
+                        msg: "Email is sent",
+                      });
+                    }
+                  });
+                })
+                .catch((err) => {
+                  res.status(500).json({
+                    status: "Failed",
+                    err: err,
+                  });
+                });
+            }
+          }
+        );
+      } else {
+        return res.status(500).json({
+          status: "Failed",
+          err: `Company not registered, or ${email} is not your email address.`,
+        });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        status: "Failed",
+        err: err,
+      });
+    });
+};
+
+module.exports.resetPassCompany = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      errors: errors.array(),
+    });
+  }
+  const password = req.body.password;
+  const token = req.body.token;
+  jwt.verify(token, "secretkey", (err, authData) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      console.log(authData.user);
+      Company.findOne({ _id: authData.user })
+        .then((company) => {
+          if (company.resetToken === token) {
+            company.resetToken = "";
+            company.password = password;
+            company
+              .save()
+              .then((result) => {
+                res.status(200).json({
+                  status: "OK",
+                  msg: "Password Reset Successfull",
+                });
+              })
+              .catch((err) => {
+                res.status(500).json({
+                  status: "Failed",
+                  err: err,
+                });
+              });
+          } else {
+            return res
+              .status(422)
+              .json({ msg: "RESET link Failed", status: "Failed" });
+          }
+        })
+        .catch((err) => {
+          res.status(500).json({ status: "Failed", err: err });
         });
     }
   });

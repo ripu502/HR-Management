@@ -124,6 +124,20 @@ router.get(
 );
 
 router.post(
+  "/forget/password/company",
+  check("email").isEmail().withMessage("Issue in email").normalizeEmail(),
+  companyComtroller.forgetPassCompany
+);
+
+router.post(
+  "/reset/password/company",
+  check("password")
+    .isLength({ min: 8 })
+    .withMessage("Password is empty or short"),
+  companyComtroller.resetPassCompany
+);
+
+router.post(
   "/company/delete/interviewer",
   verifyToken,
   companyComtroller.deleteInterviewer
