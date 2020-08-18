@@ -780,7 +780,10 @@ module.exports.information = (req, res, next) => {
       res.sendStatus(403);
     } else {
       const id = authData.id;
-      Company.find({ _id: id.toString() }, { password: 0, vesion: 0 })
+      Company.find(
+        { _id: id.toString() },
+        { password: 0, vesion: 0, resetToken: 0 }
+      )
         .then((result) => {
           res.status(200).json({
             status: "OK",
@@ -873,6 +876,82 @@ module.exports.forgetPassCompany = (req, res, next) => {
     });
 };
 
+module.exports.forgetPassInterviewer = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      errors: errors.array(),
+    });
+  }
+  let { email } = req.body;
+  Interviwer.findOne({ email: email })
+    .then((interviewer) => {
+      if (interviewer != null) {
+        jwt.sign(
+          {
+            user: interviewer._id,
+          },
+          "secretkey",
+          {
+            expiresIn: "20m",
+          },
+          (err, token) => {
+            if (err) {
+              console.log(`some err occured ${err}`);
+              return res.status(500).json({
+                status: "Failed",
+                err: err,
+              });
+            } else {
+              interviewer.resetToken = token;
+              interviewer
+                .save()
+                .then((result) => {
+                  const mailOptions = {
+                    from: process.env.email,
+                    to: email, // send mail Id sending mail to myself
+                    subject: `Mail for reset Password`, // Subject line
+                    html: `You can reset you password by using this one time recovery link. <a href="${process.env.forgetInterviewer}${token}">Clicking here.</a> You will be redirected to your Reset process.`, // plain text body
+                  };
+                  transporter.sendMail(mailOptions, function (err, result) {
+                    if (err) {
+                      console.log(err);
+                      res.status(403).json({
+                        msg: "try again",
+                        err: err,
+                      });
+                    } else {
+                      // console.log('Email Sent');
+                      res.status(200).json({
+                        msg: "Email is sent",
+                      });
+                    }
+                  });
+                })
+                .catch((err) => {
+                  res.status(500).json({
+                    status: "Failed",
+                    err: err,
+                  });
+                });
+            }
+          }
+        );
+      } else {
+        return res.status(500).json({
+          status: "Failed",
+          err: `Interviewer not registered, or ${email} is not your email address.`,
+        });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        status: "Failed",
+        err: err,
+      });
+    });
+};
+
 module.exports.resetPassCompany = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -897,7 +976,53 @@ module.exports.resetPassCompany = (req, res, next) => {
               .then((result) => {
                 res.status(200).json({
                   status: "OK",
-                  msg: "Password Reset Successfull",
+                  msg: "Password Reset Successfully",
+                });
+              })
+              .catch((err) => {
+                res.status(500).json({
+                  status: "Failed",
+                  err: err,
+                });
+              });
+          } else {
+            return res
+              .status(422)
+              .json({ msg: "RESET link Failed", status: "Failed" });
+          }
+        })
+        .catch((err) => {
+          res.status(500).json({ status: "Failed", err: err });
+        });
+    }
+  });
+};
+
+module.exports.resetPassInterviewer = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      errors: errors.array(),
+    });
+  }
+  const password = req.body.password;
+  const token = req.body.token;
+  jwt.verify(token, "secretkey", (err, authData) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      console.log(authData.user);
+      Interviwer.findOne({ _id: authData.user })
+        .then((interviewer) => {
+          if (company.resetToken === token) {
+            interviewer.resetToken = "";
+            interviewer.password = password;
+            interviewer
+              .save()
+              .then((result) => {
+                res.status(200).json({
+                  status: "OK",
+                  msg: "Password Reset Successfully",
                 });
               })
               .catch((err) => {

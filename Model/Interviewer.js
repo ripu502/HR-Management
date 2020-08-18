@@ -17,5 +17,8 @@ const interviewerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  resetToken: {
+    type: String,
+  },
 });
 module.exports = mongoose.model("Interviewer", interviewerSchema);

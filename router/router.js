@@ -130,11 +130,24 @@ router.post(
 );
 
 router.post(
+  "/forget/password/interviewer",
+  check("email").isEmail().withMessage("Issue in email").normalizeEmail(),
+  companyComtroller.forgetPassInterviewer
+);
+router.post(
   "/reset/password/company",
   check("password")
     .isLength({ min: 8 })
     .withMessage("Password is empty or short"),
   companyComtroller.resetPassCompany
+);
+
+router.post(
+  "/reset/password/interviewer",
+  check("password")
+    .isLength({ min: 8 })
+    .withMessage("Password is empty or short"),
+  companyComtroller.resetPassInterviewer
 );
 
 router.post(
