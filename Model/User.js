@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  jobName_id: {
+    type: String,
+    required: true,
+  },
   source: {
     type: String,
     required: true,
