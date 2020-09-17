@@ -1015,7 +1015,7 @@ module.exports.resetPassInterviewer = (req, res, next) => {
       console.log(authData.user);
       Interviwer.findOne({ _id: authData.user })
         .then((interviewer) => {
-          if (company.resetToken === token) {
+          if (interviewer.resetToken === token) {
             interviewer.resetToken = "";
             interviewer.password = password;
             interviewer
