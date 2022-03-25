@@ -18,7 +18,7 @@
     "helmet": "^3.23.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.20",
-    "nodemailer": "^6.4.10",
+    "nodemailer": "^6.6.1",
     "nodemon": "^2.0.4",
     "twilio": "^3.47.0",
     "validator": "^13.1.1",
